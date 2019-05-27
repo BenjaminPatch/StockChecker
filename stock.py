@@ -47,7 +47,7 @@ def update():
     """
     for filename in glob.glob("*.csv"):
         if check_date(filename): # Ensures only once per day
-            return
+            continue
         ticker = filename[:-4]
         today = datetime.today()
         string_to_append = today.strftime("%Y-%m-%d")
@@ -76,29 +76,44 @@ def display():
             date_object = datetime.strptime(sections[0], '%Y-%m-%d')
             if date_object not in dates:
                 dates.append(date_object)
-            if sections[0] not in date_to_vals:
+            if sections[0] not in date_to_vals.keys():
                 date_to_vals[sections[0]] = \
                         (float(sections[1]) * float(sections[2]))
             else:
                 date_to_vals[sections[0]] += \
                         (float(sections[1]) * float(sections[2]))
         current_file.close()
-    for key in date_to_vals.keys():
+    sortednames=sorted(date_to_vals.keys(), key=lambda x:x.lower())
+    for key in sortednames:
         values.append(date_to_vals[key])
 
+    plt.figure(1)
+    plt.subplot(211)
+    plt.plot(sorted(dates), values)
+    ax = plt.gca()
+    my_fmt = DateFormatter("%d-%m-%Y")
+    ax.xaxis.set_major_formatter(my_fmt)
+    plt.xticks(rotation=70)
+    every_nth = 2
+    for n, label in enumerate(ax.xaxis.get_ticklabels()):
+        if n % every_nth != 0:
+            label.set_visible(False)
+
+    testX = [1,2,3,4]
+    testY = [1,2,3,4]
+    
+    plt.figure(2)
+    plt.subplot(211)
+    plt.plot(testX, testY, 's')
+    plt.show()
+
+    """
     fig, ax = plt.subplots()
     ax.plot(dates, values)
     my_fmt = DateFormatter("%d-%m-%Y")
     ax.xaxis.set_major_formatter(my_fmt)
-
-    """
-    mpl_dates = matplotlib.dates.date2num(dates)
-    print(mpl_dates)
-    graph = plt.plot_date(mpl_dates, values, 'bo-')
-    graph.xaxis.set_major_formatter(myFmt)
-
-    """
     plt.show()
+    """
 
 
 def main():
@@ -112,10 +127,8 @@ def main():
             help="Display mode: Display the value of stocks")
     args = argparser.parse_args()
     if args.u:
-        print("update mode")
         update()
     elif args.d:
-        print("display mode")
         display()
     else:
         argparser.print_help()
